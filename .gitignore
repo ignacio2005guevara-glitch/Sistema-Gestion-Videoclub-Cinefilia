@@ -1,0 +1,9 @@
+# Objetos y Ejecutables
+bin/
+obj/
+*.exe
+*.o
+
+# Archivos de configuración de Code::Blocks (locales)
+*.layout
+*.depend
