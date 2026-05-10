@@ -4,6 +4,9 @@ obj/
 *.exe
 *.o
 
+# Enunciado del TP
+*.pdf
+
 # Archivos de configuración de Code::Blocks (locales)
 *.layout
 *.depend
