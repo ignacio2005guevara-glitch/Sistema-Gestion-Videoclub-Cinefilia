@@ -30,5 +30,7 @@ int  indice_lleno       (const t_indice *indice);
 void indice_vaciar      (t_indice *indice);
 int  indice_cargar      (const char *path, t_indice *indice, void *vreg_ind, size_t tamanyo, int (*cmp)(const void *, const void *));
 
+int cmpDNI(const void *valor, const void *valor2);
+
 #endif /* INDICE_H_INCLUDED */
 

@@ -7,37 +7,46 @@ int normalizar_nombre(const char* nombre_original, char* nombre_normalizado)
 {
     char* lec = (char*)nombre_original;
     char* esc = nombre_normalizado;
-    bool primeraLetra = true;
-    bool apellidoEscrito = false;
+    int palabrasEscritas = 0;
 
 
-    while(*lec)
+    while(*lec) // Mientras haya cadena para leer
     {
-        while(*lec && !ES_LETRA(*lec))
+        while(*lec && !ES_LETRA(*lec)) // Busco la primera/proxima palabra, ignoro espacios y ','
         {
             lec++;
         }
-        // Proceso Palabra
-        if(*lec)
+
+        if(*lec) // Proceso Palabra
         {
-            primeraLetra = true;
-            while(*lec && ES_LETRA(*lec))
+            if(palabrasEscritas == 1) // Escribir separador ANTES de esta palabra
             {
-                *esc = primeraLetra == true ? MI_TOUPPER(*lec) : MI_TOLOWER(*lec);
-                primeraLetra = false;
+                // Segunda palabra => viene el nombre: escribir ", "
+                *esc = ',';
+                esc++;
+                *esc = ' ';
+                esc++;
+            }
+            else if(palabrasEscritas > 1)
+            {
+                // Tercera palabra en adelante => espacio entre nombres
+                *esc = ' ';
+                esc++;
+            }
+
+            *esc = MI_TOUPPER(*lec); // Primer letra Mayuscula
+            lec++;
+            esc++;
+            while(*lec && ES_LETRA(*lec)) // Resto de letras Minsucula
+            {
+                *esc = MI_TOLOWER(*lec);
                 lec++;
                 esc++;
             }
-            if(apellidoEscrito == false)
-            {
-                *esc = ',';
-                esc++;
-                apellidoEscrito = true;
-            }
-            *esc = ' ';
-            esc++;
+
+            palabrasEscritas++;
         }
     }
-    *(esc-1) = '\0';
+    *esc = '\0';
     return 1;
 }

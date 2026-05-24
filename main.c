@@ -16,6 +16,10 @@ int main()
     t_auditoria auditoriaMiembros;
     t_auditoria auditoriaTitulos;
 
+    char rutaArchivoMiembros[] = "Archivos\\Miembros.csv";
+    char rutaArchivoTitulos[] = "Archivos\\Titulos.csv";
+
+
     /* 1. Solicitar y validar fecha de proceso */
     //obtenerFechaProceso(&fechaProceso);
 
@@ -24,10 +28,10 @@ int main()
     indice_crear(&indiceTitulos,  CANTIDAD_ELEMENTOS, sizeof(t_reg_indice));
 
     /* 3. Cargar y validar miembros desde CSV */
-    cargarMiembros("miembros.csv", &indiceMiembros, &auditoriaMiembros, fechaProceso);
+    cargarMiembros(rutaArchivoMiembros, &indiceMiembros, &auditoriaMiembros, fechaProceso);
 
     /* 4. Cargar y validar titulos desde CSV */
-    cargarTitulos("titulos.csv", &indiceTitulos, &auditoriaTitulos);
+    cargarTitulos(rutaArchivoTitulos, &indiceTitulos, &auditoriaTitulos);
 
     /* 5. Menu principal */
     menuPrincipal(&indiceMiembros, &indiceTitulos, fechaProceso);
