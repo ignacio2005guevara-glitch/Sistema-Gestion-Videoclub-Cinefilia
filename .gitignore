@@ -10,3 +10,10 @@ obj/
 # Archivos de configuración de Code::Blocks (locales)
 *.layout
 *.depend
+
+# Ignorar carpetas de datos generadas por el programa
+Archivos/
+
+# Ignorar archivos de datos y binarios
+*.dat
+*.bin

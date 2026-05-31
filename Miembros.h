@@ -4,45 +4,51 @@
 #include "Validaciones.h"
 #include "Indice.h"
 #include "Auditoria.h"
-#include "Validaciones.h"
+#include "VectorDinamico.h"
 
 #define MAX_NOMBRE 60
 #define MAX_PLAN   10
 #define MAX_EMAIL  30
 #define MAX_CUIL   15
+#define MAX_CARACTERES_MIEMBRO_CSV 300
+#define CANT_CAMPOS_MIEMBRO 16
 
-typedef struct
-{
-    long    dni;
-    char    cuil[MAX_CUIL];
-    char    nombre[MAX_NOMBRE];
-    t_fecha fechaNacimiento;
-    char    sexo;
-    t_fecha fechaAfiliacion;
-    char    categoria[10];      /* "MENOR" o "ADULTO" */
-    t_fecha fechaUltimaCuota;
-    char    estado;             /* 'A' o 'B' */
-    char    plan[MAX_PLAN];
-    char    emailTutor[MAX_EMAIL];
-} t_miembro;
+typedef struct {
+    void *vmiembros;        /* void * si fuera genérico, acá es tipado */
+    unsigned   cantidad_actual;
+    unsigned   cantidad_maxima;
+} t_vector_miembros;
 
 /* Carga y validacion */
-void cargarMiembros(const char *path, t_indice *indice, t_auditoria *auditoria, t_fecha fechaProceso);
+void cargar_miembros(const char *path, void* vec, t_indice *indice, t_error *auditoria, t_fecha fecha_proceso);
 
 /* ABM */
-int  altaMiembro(t_indice *indice, t_auditoria *auditoria, t_fecha fechaProceso);
-int  bajaMiembro(t_indice *indice);
-int  modificarMiembro(t_indice *indice, t_fecha fechaProceso);
-void mostrarMiembro(const t_miembro *m);
+int  alta_miembro(t_indice *indice, t_vector *vec, t_fecha fecha_proceso);
+int  baja_miembro(t_indice *indice,t_vector *vec);
+int  modificar_miembro(t_indice *indice, t_vector *vec, t_fecha fechaProceso);
+//void mostrar_miembro(t_indice *indice);
+void mostrar_miembro(const void *elem);
+void mostrar_encabezado_miembros(void);
+void mostrar_miembro_por_dni(const t_indice *indice, const t_vector *vec);
 
 /* Listados */
-void listarMiembrosPorDNI (const t_indice *indice);
-void listarMiembrosPorPlan(const t_indice *indice);
+void listar_miembros_por_DNI(const t_indice *indice, const t_vector *vec);
+void listar_miembros_por_plan(const t_indice *indice, const t_vector *vec);
+void mostrar_reg_indice_miembro(const void *elem);
+
+int mostrar_archivo_miembros(const char* nombre_binario);
+void miembro_mostrar_linea(const t_miembro* m);
+
 
 /* Persistencia */
-void persistirMiembros(const t_indice *indice, t_fecha fechaProceso);
+void persistir_miembros(const t_indice *indice, t_fecha fecha_proceso);
 
 /* Comparador para el indice */
-int cmpMiembro(const void *a, const void *b);
+int cmp_miembro(const void *a, const void *b);
+
+/* Comparador para el indice */
+int cmp_DNI(const void *valor, const void *valor2);
+
+int cmp_nombre(const void *a, const void *b);
 
 #endif /* MIEMBROS_H_INCLUDED */

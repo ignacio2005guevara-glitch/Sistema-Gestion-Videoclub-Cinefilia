@@ -5,8 +5,9 @@
 #include "Indice.h"
 #include "Alquileres.h"
 #include "Auditoria.h"
+#include "Miembros.h"
 
-void menuPrincipal  (t_indice *indiceMiembros, t_indice *indiceTitulos, t_fecha fechaProceso);
-void persistirDatos (t_indice *indiceMiembros, t_indice *indiceTitulos, t_fecha fechaProceso);
+void menu_principal(t_indice *indice_miembros, t_indice *indice_titulos, t_vector *vec_miembros, t_vector *vec_titulos, t_vector *vec_alquileres, t_fecha fecha_proceso);
+void persistir_datos(t_indice *indice_miembros, t_indice *indice_titulos, t_fecha fecha_proceso);
 
 #endif /* MENU_H_INCLUDED */

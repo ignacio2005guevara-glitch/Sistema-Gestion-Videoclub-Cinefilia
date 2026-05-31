@@ -31,14 +31,39 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="Alquileres.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Alquileres.h" />
+		<Unit filename="Auditoria.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Auditoria.h" />
+		<Unit filename="Estructuras.h" />
 		<Unit filename="Indice.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Indice.h" />
+		<Unit filename="Menu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Menu.h" />
+		<Unit filename="Miembros.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Miembros.h" />
+		<Unit filename="Titulos.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Titulos.h" />
 		<Unit filename="Validaciones.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Validaciones.h" />
+		<Unit filename="VectorDinamico.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="VectorDinamico.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
