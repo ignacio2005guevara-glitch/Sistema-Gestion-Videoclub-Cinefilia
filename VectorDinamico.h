@@ -51,6 +51,8 @@ void vector_redimensionar(t_vector *vec, size_t nmemb, size_t tam);
 **************************************************************************/
 int vector_agregar(t_vector *vec, const void *registro, size_t tam);
 
+int vector_insertar_ordenado(t_vector *vec, const void *registro, size_t tam, int (*cmp)(const void*, const void*));
+
 /**************************************************************************
  Descripción : Sobreescribe el elemento ubicado en nro_reg con los
                datos de modificado.

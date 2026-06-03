@@ -3,7 +3,7 @@
 #include <string.h>
 #include "Titulos.h"
 
-void cargar_titulos(const char *path, void* vec, t_indice *indice, t_error *auditoria, t_fecha fecha_proceso)
+void cargar_titulos(const char *path, void *vec_titulos, t_indice *indice, void *vec_auditoria_titulos, t_fecha fecha_proceso)
 {
     const char *Generos[] = {"Accion", "Drama", "Comedia", "Terror"};
     const char Estados[] = {'A','B'};
@@ -41,7 +41,7 @@ void cargar_titulos(const char *path, void* vec, t_indice *indice, t_error *audi
         // Validar ID
         if(!validar_id(&registro.id_pelicula, indice))
         {
-            //registrar_error(auditoria, "ID", &registro.id_pelicula);
+            registrar_error_titulo(vec_auditoria_titulos, "ID", &registro.id_pelicula, &fecha_proceso);
             continue;
         }
 
@@ -55,21 +55,21 @@ void cargar_titulos(const char *path, void* vec, t_indice *indice, t_error *audi
         // Validar Genero
         if(!validar_plan_genero(registro.genero, Generos, CANT_PLANES_GENEROS))
         {
-            //registrar_error(auditoria, "GENERO", &registro.id_pelicula);
+            registrar_error_titulo(vec_auditoria_titulos, "GENERO", &registro.id_pelicula, &fecha_proceso);
             continue;
         }
 
         // Validar Stock (>= 0, por defecto 0)
         if(!validar_stock(registro.stock, 1, 0))
         {
-            //registrar_error(auditoria, "STOCK", &registro.id_pelicula);
+            registrar_error_titulo(vec_auditoria_titulos, "STOCK", &registro.id_pelicula, &fecha_proceso);
             continue;
         }
 
         // Validar Estado
         if(!validar_caracter(registro.estado, Estados, CANT_ESTADOS))
         {
-            //registrar_error(auditoria, "ESTADO", &registro.id_pelicula);
+            registrar_error_titulo(vec_auditoria_titulos, "ESTADO", &registro.id_pelicula, &fecha_proceso);
             continue;
         }
 
@@ -92,7 +92,7 @@ void cargar_titulos(const char *path, void* vec, t_indice *indice, t_error *audi
 //                            sizeof(t_reg_indice_titulo), cmp_id);
 
             // Nueva clave -> escribir en archivo e insertar en indice
-            vector_agregar(vec, &registro, sizeof(t_titulo));
+            vector_agregar(vec_titulos, &registro, sizeof(t_titulo));
             reg_indice.nro_reg = nro_reg;
             indice_insertar(indice, &reg_indice, sizeof(t_reg_indice_titulo), cmp_id_pelicula);
             nro_reg++;
@@ -177,7 +177,7 @@ int  alta_titulo(t_indice *indice, t_vector *vec)
     nuevo_titulo.estado = 'A';
 
     vector_agregar(vec, &nuevo_titulo, sizeof(t_titulo));
-    indice_insertar(indice, &reg_indice, sizeof(t_reg_indice_miembro), cmp_DNI);
+    indice_insertar(indice, &reg_indice, sizeof(t_reg_indice_titulo), cmp_id_pelicula);
 
     ///PRUEBA mostrar vector
     printf("\n================================================================================================================================================================\n");
@@ -310,7 +310,7 @@ int  modificar_titulo(t_indice *indice,t_vector *vec)
             char nuevo_titulo[60];
             printf("Ingrese el nuevo Titulo: ");
             fflush(stdin);
-            gets(nuevo_titulo);
+            fgets(nuevo_titulo, 60, stdin);
 
             char titulo_normalizado[60];
             normalizar(nuevo_titulo, titulo_normalizado,0);
@@ -322,7 +322,7 @@ int  modificar_titulo(t_indice *indice,t_vector *vec)
             char nuevo_genero[20];
             printf("Ingrese el nuevo Genero (Accion / Drama / Comedia / Terror): ");
             fflush(stdin);
-            gets(nuevo_genero);
+            fgets(nuevo_genero, 20, stdin);
 
             if (!validar_plan_genero(nuevo_genero, Generos, CANT_PLANES_GENEROS))
                 {
@@ -383,7 +383,7 @@ int  modificar_titulo(t_indice *indice,t_vector *vec)
     indice_mostrar(indice, sizeof(t_reg_indice_titulo), mostrar_reg_indice_titulo);
 
 
-    return 1;
+    return OK;
 }
 
 void persistir_titulos(const t_indice *indice, t_fecha fechaProceso)
@@ -424,10 +424,10 @@ void mostrar_reg_indice_titulo(const void *elem)
 
 void mostrar_encabezado_titulos(void)
 {
-    printf("\n================================================================================================================================================================\n");
+    printf("\n============================================================================================================\n");
     printf("%-9s | %-60s | %-20s | %-5s | %s\n",
            "ID", "TITULO", "GENERO", "STOCK", "ESTADO");
-    printf("===================================================================================================================================================================\n");
+    printf("===============================================================================================================\n");
 }
 
 void mostrar_titulo_por_id(const t_indice *indice, const t_vector *vec)

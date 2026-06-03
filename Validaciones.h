@@ -23,7 +23,7 @@
 typedef int (*Cmp)(const void *, const void *);
 
 
-int cmp_dni  (const void *a, const void *b);
+//int cmp_dni  (const void *a, const void *b);
 int cmp_fecha(const void *a, const void *b);
 void normalizar(const char *nombre_original, char *nombre_normalizado, int con_coma);;
 int validar_email(const char* email); //Retorna 1 si es valido o 0 si no lo es.

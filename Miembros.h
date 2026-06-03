@@ -20,7 +20,7 @@ typedef struct {
 } t_vector_miembros;
 
 /* Carga y validacion */
-void cargar_miembros(const char *path, void* vec, t_indice *indice, t_error *auditoria, t_fecha fecha_proceso);
+void cargar_miembros(const char *path, void *vec_miembros, t_indice *indice, void *vec_auditoria, t_fecha fecha_proceso);
 
 /* ABM */
 int  alta_miembro(t_indice *indice, t_vector *vec, t_fecha fecha_proceso);

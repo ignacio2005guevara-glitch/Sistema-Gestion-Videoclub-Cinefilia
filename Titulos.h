@@ -11,7 +11,7 @@
 #define CANT_CAMPOS_TITULO  5
 
 
-void cargar_titulos(const char *path, void* vec, t_indice *indice, t_error *auditoria, t_fecha fecha_proceso);
+void cargar_titulos(const char *path, void *vec_titulos, t_indice *indice, void *vec_auditoria_titulos, t_fecha fecha_proceso);
 int  alta_titulo(t_indice *indice, t_vector *vec);
 int  baja_titulo(t_indice *indice, t_vector *vec);
 int  modificar_titulo(t_indice *indice,t_vector *vec);

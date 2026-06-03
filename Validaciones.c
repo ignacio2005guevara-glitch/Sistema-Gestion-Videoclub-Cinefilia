@@ -196,13 +196,15 @@ int validar_CUIL(long* dni, char* sexo, const char* cuil_archivo)
 {
     char cuil_calculado[14];
 
-    calcular_CUIL(dni, sexo, cuil_calculado);
-
+    if(calcular_CUIL(dni, sexo, cuil_calculado) == ERROR)
+    {
+        return ERROR;
+    }
 
     if (strcmp(cuil_archivo, cuil_calculado) == 0) {
-        return 1;
+        return OK;
     } else {
-        return 0;
+        return ERROR;
     }
 }
 
@@ -220,8 +222,11 @@ int calcular_CUIL(long* dni, char* sexo, char* cuil_destino)
         sex_aux = 20;
     } else if (*sexo == 'F' || *sexo == 'f') {
         sex_aux = 27;
-    } else {
+    } else if (*sexo == 'o' || *sexo == 'O'){
         sex_aux = 30; // Otro / Sociedad
+    }
+    else{
+        return ERROR;
     }
 
     //sumamos el aporte del prefijo (posiciones 0 y 1 de los coeficientes)
@@ -257,7 +262,7 @@ int calcular_CUIL(long* dni, char* sexo, char* cuil_destino)
 
     sprintf(cuil_destino, "%02d-%08ld-%d", sex_aux, *dni, z);
 
-    return 1; // OK
+    return OK; // OK
 }
 
 int validar_caracter(char dato,const char opciones[],int ce)
@@ -273,11 +278,14 @@ int validar_caracter(char dato,const char opciones[],int ce)
 
 int validar_plan_genero(const char *dato,const char *opciones[], int ce)
 {
-
+    char dato_normalizado[20], opcion_normalizado[20];
     int i;
+
+    normalizar(dato, dato_normalizado, 0);
     for(i=0;i<ce;i++)
     {
-        if(strcmp(dato,opciones[i])==0)
+        normalizar(opciones[i], opcion_normalizado, 0);
+        if(strcmp(dato_normalizado,opcion_normalizado)==0)
             return OK; //valido
     }
 
@@ -348,16 +356,16 @@ int validar_id(int *id, t_indice *indice)
 
     // Validar que sea mayor a 0
     if(*id <= 0)
-        return 0;
+        return ERROR;
 
     // Validar que no exista en el indice (debe ser único)
     reg_buscar.id      = *id;
     reg_buscar.nro_reg = 0;
 
     if(indice_buscar(indice, &reg_buscar, indice->cantidad_elementos_actual, sizeof(t_reg_indice_titulo), cmp_id_pelicula) != NO_EXISTE)
-        return 0;   /* ya existe → inválido */
+        return ERROR;   /* ya existe → inválido */
 
-    return 1;
+    return OK;
 }
 
 t_fecha obtener_fecha_proceso(void)

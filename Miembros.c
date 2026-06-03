@@ -3,7 +3,7 @@
 #include <string.h>
 #include "Miembros.h"
 
-void cargar_miembros(const char *path, void* vec, t_indice *indice, t_error *auditoria, t_fecha fecha_proceso)
+void cargar_miembros(const char *path, void *vec_miembros, t_indice *indice, void *vec_auditoria, t_fecha fecha_proceso)
 {
     const char *Planes[]  = {"BASIC", "PREMIUM", "VIP", "FAMILY"};
     //const char *Generos[] = {"Drama", "Comedia", "Terror", "Accion"};
@@ -56,14 +56,14 @@ void cargar_miembros(const char *path, void* vec, t_indice *indice, t_error *aud
         // Validar DNI
         if(!validar_DNI(&registro.dni))
         {
-            registrar_error(auditoria, "DNI", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "DNI", &registro.dni, &fecha_proceso);
             continue;
         }
 
         // Validar CUIL
         if(!validar_CUIL(&registro.dni, &registro.sexo, registro.cuil))
         {
-            registrar_error(auditoria, "CUIL", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "CUIL", &registro.dni, &fecha_proceso);
             continue;
         }
 
@@ -75,54 +75,58 @@ void cargar_miembros(const char *path, void* vec, t_indice *indice, t_error *aud
 
         if(!es_fecha_valida(registro.fecha_nacimiento) || cmp_fecha(&registro.fecha_nacimiento, &fecha_limite) >= 0)
         {
-            registrar_error(auditoria, "FEC NACIMIENTO", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "FEC NACIMIENTO", &registro.dni, &fecha_proceso);
             continue;
         }
 
         // Validar Sexo
         if(!validar_caracter(registro.sexo, Sexos, CANT_SEXOS))
         {
-            registrar_error(auditoria, "SEXO", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "SEXO", &registro.dni, &fecha_proceso);
             continue;
         }
 
         // Validar Fecha de afiliacion
         if(!es_fecha_valida(registro.fecha_afiliacion) || cmp_fecha(&registro.fecha_afiliacion, &registro.fecha_nacimiento) < 0 || cmp_fecha(&registro.fecha_afiliacion, &fecha_proceso) > 0 )
         {
-            registrar_error(auditoria, "FEC AFILIACION", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "FEC AFILIACION", &registro.dni, &fecha_proceso);
             continue;
         }
 
         // Validar Categoria
         if(!validar_categoria(registro.categoria, &registro, &fecha_proceso))
         {
-            registrar_error(auditoria, "CATEGORIA", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "CATEGORIA", &registro.dni, &fecha_proceso);
             continue;
         }
 
         // Validar Fecha ultima cuota paga
         if(!es_fecha_valida(registro.fecha_afiliacion) || cmp_fecha(&registro.fecha_ultima_cuota, &registro.fecha_afiliacion) < 0 || cmp_fecha(&registro.fecha_ultima_cuota, &fecha_proceso) > 0)
         {
-            registrar_error(auditoria, "FEC ULT CUOTA PAGA", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "FEC ULT CUOTA PAGA", &registro.dni, &fecha_proceso);
             continue;
         }
 
         // Validar Estado
         if(!validar_caracter(registro.estado, Estados, CANT_ESTADOS))
         {
-            registrar_error(auditoria, "ESTADO", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "ESTADO", &registro.dni, &fecha_proceso);
             continue;
         }
 
         // Validar Plan
         if(!validar_plan_genero(registro.plan, Planes, CANT_PLANES_GENEROS))
         {
-            registrar_error(auditoria, "PLAN", &registro.dni);
+            registrar_error_miembro(vec_auditoria, "PLAN", &registro.dni, &fecha_proceso);
             continue;
         }
 
         // Validar Email Tutor
-        /// PENDIENTE. ¿QUE FUNCION HAY QUE USAR?
+        if(registro.email_tutor[0] != '\0' && !validar_email(registro.email_tutor))
+        {
+            registrar_error_miembro(vec_auditoria, "EMAIL TUTOR", &registro.dni, &fecha_proceso);
+            continue;
+        }
 
         // Normalizar nombre
         char nombre_normalizado[MAX_NOMBRE];
@@ -137,7 +141,7 @@ void cargar_miembros(const char *path, void* vec, t_indice *indice, t_error *aud
         if(indice_buscar(indice, &reg_indice, indice->cantidad_elementos_actual, sizeof(t_reg_indice_miembro), cmp_DNI) == NO_EXISTE)
         {
             // Nueva clave -> escribir en archivo e insertar en indice
-            vector_agregar(vec, &registro, sizeof(t_miembro));
+            vector_agregar(vec_miembros, &registro, sizeof(t_miembro));
             reg_indice.nro_reg = nro_reg;
             indice_insertar(indice, &reg_indice, sizeof(t_reg_indice_miembro), cmp_DNI);
             nro_reg++;
@@ -161,69 +165,60 @@ int  alta_miembro(t_indice *indice, t_vector *vec, t_fecha fecha_proceso)
     const char *Planes[] = {"BASIC", "PREMIUM", "VIP", "FAMILY"};
     const char  Sexos[]  = {'F', 'M', 'O'};
 
-    /* ── Pedir todos los datos ── */
     printf("Ingrese DNI: ");
     scanf("%ld", &nuevo_miembro.dni);
-    getchar();
-    fflush(stdin);
 
     printf("Ingrese CUIL: ");
+    fflush(stdin);
     fgets(nuevo_miembro.cuil, MAX_CUIL, stdin);
     nuevo_miembro.cuil[strcspn(nuevo_miembro.cuil, "\n")] = '\0';
-    fflush(stdin);
 
     printf("Ingrese Apellido y Nombre (Apellido, Nombre): ");
+    fflush(stdin);
     fgets(nuevo_miembro.nombre, MAX_NOMBRE, stdin);
     nuevo_miembro.nombre[strcspn(nuevo_miembro.nombre, "\n")] = '\0';
-    fflush(stdin);
 
     printf("Ingrese Fecha de Nacimiento (dd/mm/aaaa): ");
+    fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
     sscanf(buffer, "%d/%d/%d", &nuevo_miembro.fecha_nacimiento.dia,
                                &nuevo_miembro.fecha_nacimiento.mes,
                                &nuevo_miembro.fecha_nacimiento.anio);
-    fflush(stdin);
 
     printf("Ingrese Sexo (F/M/O): ");
+    fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
     nuevo_miembro.sexo = buffer[0];
-    fflush(stdin);
 
     printf("Ingrese Fecha de Afiliacion (dd/mm/aaaa): ");
+    fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
     sscanf(buffer, "%d/%d/%d", &nuevo_miembro.fecha_afiliacion.dia,
                                &nuevo_miembro.fecha_afiliacion.mes,
                                &nuevo_miembro.fecha_afiliacion.anio);
-    fflush(stdin);
 
-    printf("Seleccione Categoria:\n");
-    printf("  1. MENOR\n  2. ADULTO\n\n");
-    printf("Opcion: ");
+    printf("Ingrese Categoria (MENOR, ADULTO): ");
+    fflush(stdin);
     fgets(nuevo_miembro.categoria, MAX_CATEGORIA, stdin);
     nuevo_miembro.categoria[strcspn(nuevo_miembro.categoria, "\n")] = '\0';
-    fflush(stdin);
 
     printf("Ingrese Fecha Ultima Cuota Paga (dd/mm/aaaa): ");
+    fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
     sscanf(buffer, "%d/%d/%d", &nuevo_miembro.fecha_ultima_cuota.dia,
                                &nuevo_miembro.fecha_ultima_cuota.mes,
                                &nuevo_miembro.fecha_ultima_cuota.anio);
-    fflush(stdin);
 
-    printf("Seleccione Plan:\n");
-    printf("  1. BASIC\n  2. PREMIUM\n  3. VIP\n  4. FAMILY\n");
-    printf("Opcion: ");
+    printf("Ingrese el Plan (BASIC, PREMIUM, VIP, FAMILY): ");
+    fflush(stdin);
     fgets(nuevo_miembro.plan, MAX_PLAN, stdin);
     nuevo_miembro.plan[strcspn(nuevo_miembro.plan, "\n")] = '\0';
-    fflush(stdin);
 
     // Validar DNI
     if(!validar_DNI(&nuevo_miembro.dni))
     {
-        //registrar_error(auditoria, "DNI", &nuevo_miembro.dni);
         return ERROR;
     }
-
 
     // Validar DNI duplicado en el indice
     t_reg_indice_miembro reg_buscar;
@@ -239,7 +234,6 @@ int  alta_miembro(t_indice *indice, t_vector *vec, t_fecha fecha_proceso)
     // Validar CUIL
     if(!validar_CUIL(&nuevo_miembro.dni, &nuevo_miembro.sexo, nuevo_miembro.cuil))
     {
-        //registrar_error(auditoria, "CUIL", &nuevo_miembro.dni);
         return ERROR;
     }
 
@@ -251,47 +245,44 @@ int  alta_miembro(t_indice *indice, t_vector *vec, t_fecha fecha_proceso)
 
     if(!es_fecha_valida(nuevo_miembro.fecha_nacimiento) || cmp_fecha(&nuevo_miembro.fecha_nacimiento, &fecha_limite) >= 0)
     {
-        //registrar_error(auditoria, "FEC NACIMIENTO", &nuevo_miembro.dni);
         return ERROR;
     }
 
     // Validar Sexo
     if(!validar_caracter(nuevo_miembro.sexo, Sexos, CANT_SEXOS))
     {
-        //registrar_error(auditoria, "SEXO", &nuevo_miembro.dni);
         return ERROR;
     }
 
     // Validar Fecha de afiliacion
     if(!es_fecha_valida(nuevo_miembro.fecha_afiliacion) || cmp_fecha(&nuevo_miembro.fecha_afiliacion, &nuevo_miembro.fecha_nacimiento) < 0 || cmp_fecha(&nuevo_miembro.fecha_afiliacion, &fecha_proceso) > 0 )
     {
-        //registrar_error(auditoria, "FEC AFILIACION", &nuevo_miembro.dni);
         return ERROR;
     }
 
     // Validar Categoria
     if(!validar_categoria(nuevo_miembro.categoria, &nuevo_miembro, &fecha_proceso))
     {
-        //registrar_error(auditoria, "CATEGORIA", &nuevo_miembro.dni);
         return ERROR;
     }
 
     // Validar Fecha ultima cuota paga
     if(!es_fecha_valida(nuevo_miembro.fecha_afiliacion) || cmp_fecha(&nuevo_miembro.fecha_ultima_cuota, &nuevo_miembro.fecha_afiliacion) < 0 || cmp_fecha(&nuevo_miembro.fecha_ultima_cuota, &fecha_proceso) > 0)
     {
-        //registrar_error(auditoria, "FEC ULT CUOTA PAGA", &nuevo_miembro.dni);
         return ERROR;
     }
 
     // Validar Plan
     if(!validar_plan_genero(nuevo_miembro.plan, Planes, CANT_PLANES_GENEROS))
     {
-        //registrar_error(auditoria, "PLAN", &nuevo_miembro.dni);
         return ERROR;
     }
 
     // Validar Email Tutor
-    /// PENDIENTE. ¿QUE FUNCION HAY QUE USAR?
+    if(nuevo_miembro.email_tutor[0] != '\0' && !validar_email(nuevo_miembro.email_tutor))
+    {
+        return ERROR;
+    }
 
     // Normalizar Nombre
     char nombre_normalizado[MAX_NOMBRE];
@@ -304,7 +295,6 @@ int  alta_miembro(t_indice *indice, t_vector *vec, t_fecha fecha_proceso)
     // Revisar si la clave no existe en el indice. Armar reg_indice con la clave a buscar
     reg_indice.dni     = nuevo_miembro.dni;
     reg_indice.nro_reg = vec->cantidad_actual;
-    //reg_indice.nro_reg = 0;   /* nro_reg no importa para la búsqueda */
 
     if(indice_buscar(indice, &reg_indice, indice->cantidad_elementos_actual, sizeof(t_reg_indice_miembro), cmp_DNI) == NO_EXISTE)
     {
@@ -324,7 +314,6 @@ int  alta_miembro(t_indice *indice, t_vector *vec, t_fecha fecha_proceso)
            "DNI", "CUIL", "APELLIDO Y NOMBRE", "F. NAC", "S", "F. AFIL", "CATEGORIA", "U. PAGO", "E", "PLAN", "EMAIL TUTOR");
     printf("=========================================================================================================================================================================================\n");
     vector_mostrar(vec, sizeof(t_miembro), mostrar_miembro);
-    //archivo_bin_mostrar(pf_miembros, sizeof(t_miembro), mostrar_miembro);
 
     /// PRUEBA mostrar indice
     printf("\nIndice Miembros:\n");
@@ -360,8 +349,9 @@ int  baja_miembro(t_indice *indice,t_vector *vec)
         nro_reg=indice_lectura[pos_indice].nro_reg;
         void* pos = vec->vdatos + nro_reg * sizeof(t_miembro);
         memcpy(&miembro,pos,sizeof(t_miembro));
-        printf("\nDESEA CONFIRMAR LA BAJA DEL USUARIO %s (Y/N):",miembro.nombre);
-        scanf(" %c",&validacion);
+        printf("\nDESEA CONFIRMAR LA BAJA DEL USUARIO %s (Y/N): ",miembro.nombre);
+        fflush(stdin);
+        scanf("%c",&validacion);
         if(validacion == 'y' || validacion == 'Y')
         {
 
@@ -469,7 +459,7 @@ int  modificar_miembro(t_indice *indice, t_vector *vec, t_fecha fechaProceso)
             char nuevo_nombre[60];
             printf("Ingrese el nuevo Apellido y Nombre: ");
             fflush(stdin);
-            gets(nuevo_nombre);
+            fgets(nuevo_nombre, 60, stdin);
 
             // normalizamos
             char nombre_normalizado[60];
@@ -500,7 +490,7 @@ int  modificar_miembro(t_indice *indice, t_vector *vec, t_fecha fechaProceso)
             char nuevo_sexo;
             printf("Ingrese nuevo Sexo (F / M / O): ");
             fflush(stdin);
-            scanf(" %c", &nuevo_sexo);
+            scanf("%c", &nuevo_sexo);
 
            if(!validar_caracter(nuevo_sexo, Sexos, CANT_SEXOS))
               {
@@ -529,7 +519,7 @@ int  modificar_miembro(t_indice *indice, t_vector *vec, t_fecha fechaProceso)
             char plan_nuevo[8];
             printf("Escriba el nuevo Plan:\n- BASIC\n- PREMIUM\n- VIP\n- FAMILY\nPlan: ");
             fflush(stdin);
-            gets(plan_nuevo);
+            fgets(plan_nuevo, 8, stdin);
 
             if(!validar_plan_genero(plan_nuevo, Planes, CANT_PLANES_GENEROS))
                 {
@@ -546,16 +536,16 @@ int  modificar_miembro(t_indice *indice, t_vector *vec, t_fecha fechaProceso)
             char nuevo_email[30];
             printf("Ingrese el Email del Tutor: ");
             fflush(stdin);
-            gets(nuevo_email);
+            fgets(nuevo_email, 30, stdin);
 
-           // if (validarEmail(nuevo_email) == ERROR)
-                {
+            if (validar_email(nuevo_email) == ERROR)
+            {
                 printf("Error: Formato de Email inválido.\n");
                 return ERROR;
-               }
+            }
 
             if (strcmp(miembro->categoria, "MENOR") == 0 && strlen(nuevo_email) == 0)
-                {
+            {
                 printf("Error: Al ser MENOR, el mail del tutor no puede estar vacío.\n");
                 return ERROR;
             }
