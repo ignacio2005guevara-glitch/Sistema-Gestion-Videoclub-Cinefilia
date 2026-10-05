@@ -49,7 +49,7 @@ void vector_redimensionar(t_vector *vec, size_t nmemb, size_t tam)
 
     vec->vdatos = aux;
     vec->cantidad_maxima = nmemb;
-    //free(aux);
+
 }
 
 int vector_agregar(t_vector *vec, const void *registro, size_t tam)
@@ -73,30 +73,30 @@ int vector_insertar_ordenado(t_vector *vec, const void *registro, size_t tam, in
 {
     int i, pos;
 
-    // 1. Si está lleno, redimensionar
+    // Si estÃ¡ lleno, redimensionar
     if(vector_lleno(vec))
     {
         vector_redimensionar(vec, vec->cantidad_maxima * INCREMENTO, tam);
     }
 
-    // 2. Buscar la posición donde insertar
+    // Buscar la posiciÃ³n donde insertar
     pos = 0;
     while(pos < vec->cantidad_actual && cmp((char*)vec->vdatos + pos * tam, registro) <= 0)
     {
         pos++;
     }
 
-    // 3. Desplazar elementos hacia la derecha para hacer lugar
+    // Desplazar elementos hacia la derecha para hacer lugar
     for(i = vec->cantidad_actual; i > pos; i--)
     {
         memcpy((char*)vec->vdatos + i * tam, (char*)vec->vdatos + (i-1) * tam, tam);
     }
 
-    // 4. Insertar en la posición correcta
+    // Insertar en la posiciÃ³n correcta
     memcpy((char*)vec->vdatos + pos * tam, registro, tam);
     vec->cantidad_actual++;
 
-    return 1;
+    return OK;
 }
 
 int vector_modificar(t_vector *vec, unsigned nro_reg, const void *modificado, size_t tam)

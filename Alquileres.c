@@ -25,7 +25,7 @@ int alquilar_pelicula(t_indice *indice_miembros, t_indice *indice_titulos,t_vect
     do
     {
         printf("\nIngrese el dni del miembro (0 para cancelar): ");
-        scanf("%ld",&dni);
+        scanf("%ld", &dni);
         if(dni==0)
             return ERROR;
         reg_buscar_miembro.dni = dni;
@@ -38,7 +38,7 @@ int alquilar_pelicula(t_indice *indice_miembros, t_indice *indice_titulos,t_vect
     do
     {
         printf("\nIngrese el ID de la pelicula (0 para cancelar): ");
-        scanf("%d",&id_pelicula);
+        scanf("%d", &id_pelicula);
         if(id_pelicula==0)
             return ERROR;
         reg_buscar_pelicula.id = id_pelicula;
@@ -139,4 +139,39 @@ void mostrar_encabezado_alquiler(void)
 {
     printf("%-9s | %-9s | %s\n",
            "DNI", "ID PELICULA", "CANT ALQUILERES");
+}
+
+void persistir_alquileres(const t_vector *vec, t_fecha fecha_proceso)
+{
+    char path[100];
+    sprintf(path, "Archivos\\alquileres_%04d%02d%02d.dat", fecha_proceso.anio, fecha_proceso.mes, fecha_proceso.dia);
+
+    FILE *pf = fopen(path, "wb");
+    if (!pf)
+    {
+        printf("Error al crear archivo de persistencia de alquileres: %s\n", path);
+        return;
+    }
+
+    fwrite(vec->vdatos, sizeof(t_alquiler), vec->cantidad_actual, pf);
+    fclose(pf);
+    printf("Alquileres persistidos en: %s\n", path);
+}
+
+int cargar_alquileres_bin(const char *path, t_vector *vec_alquileres)
+{
+    FILE *pf = fopen(path, "rb");
+    if (!pf)
+    {
+        return ERROR;
+    }
+
+    t_alquiler a;
+    while (fread(&a, sizeof(t_alquiler), 1, pf) == 1)
+    {
+        vector_agregar(vec_alquileres, &a, sizeof(t_alquiler));
+    }
+
+    fclose(pf);
+    return OK;
 }

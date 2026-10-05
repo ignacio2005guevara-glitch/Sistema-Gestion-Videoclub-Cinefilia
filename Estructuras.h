@@ -25,9 +25,9 @@ typedef struct
     t_fecha fecha_nacimiento;
     char    sexo;
     t_fecha fecha_afiliacion;
-    char    categoria[MAX_CATEGORIA];      /* "MENOR" o "ADULTO" */
+    char    categoria[MAX_CATEGORIA];      // "MENOR" o "ADULTO"
     t_fecha fecha_ultima_cuota;
-    char    estado;             /* 'A' o 'B' */
+    char    estado;             // 'A' o 'B'
     char    plan[MAX_PLAN];
     char    email_tutor[MAX_EMAIL];
 }t_miembro;

@@ -46,7 +46,7 @@ int  indice_insertar(t_indice *indice, const void *registro, size_t tamanyo, int
     int izq = 0;
     int der = (int)indice->cantidad_elementos_actual - 1;
     int comp, medio;
-    //int posicion_insercion = 0;
+
 
     if(indice->cantidad_elementos_actual == indice->cantidad_elementos_maxima)
     {
@@ -67,14 +67,14 @@ int  indice_insertar(t_indice *indice, const void *registro, size_t tamanyo, int
         medio = izq + (der - izq) / 2;
         comp = cmp(nuevoRegistro, &vectorIndice[medio]);
 
-        if(comp == 0) // Se encontró
+        if(comp == 0) // Se encontrÃ³
         {
-            return 0; // La clave ya existe en el indice
+            return ERROR; // La clave ya existe en el indice
         }
 
         if(comp > 0 )
         {
-            izq = medio + 1; //
+            izq = medio + 1;
         }
 
         if(comp < 0)
@@ -95,7 +95,7 @@ int  indice_insertar(t_indice *indice, const void *registro, size_t tamanyo, int
 
     indice->cantidad_elementos_actual++;
 
-    return 1;
+    return OK;
 }
 
 
@@ -111,7 +111,7 @@ int  indice_eliminar(t_indice *indice, const void *registro, size_t tam, int (*c
 
     pos = indice_buscar(indice, registro, indice->cantidad_elementos_actual, tam, cmp);
 
-    if(pos == NO_EXISTE) // No se encontró el registro
+    if(pos == NO_EXISTE) // No se encontrÃ³ el registro
     {
         return ERROR;
     }
@@ -137,7 +137,7 @@ int  indice_buscar(const t_indice *indice, const void *registro, size_t nmemb, s
 
     while(i < indice->cantidad_elementos_actual)
     {
-        if(cmp(registro, &vectorIndice[i]) == 0) // Lo encontré
+        if(cmp(registro, &vectorIndice[i]) == 0) // Lo encontrÃ©
         {
             return i;
         }
@@ -149,7 +149,6 @@ int  indice_buscar(const t_indice *indice, const void *registro, size_t nmemb, s
         {
             return NO_EXISTE;
         }
-        //i++; /// AGREGADO
     }
     return NO_EXISTE;
 }
@@ -188,7 +187,7 @@ int  indice_cargar(const char *path, t_indice *indice, void *vreg_ind, size_t ta
     }
 
     t_reg_indice reg_indice;
-    unsigned nro_reg_archivo = 0;  // Contador de posición en el archivo */
+    unsigned nro_reg_archivo = 0;  // Contador de posiciÃ³n en el archivo
 
     while(fread(vreg_ind, tamanyo, 1, pfArchivo))
     {
@@ -200,11 +199,12 @@ int  indice_cargar(const char *path, t_indice *indice, void *vreg_ind, size_t ta
         }
 
         indice_insertar(indice, &reg_indice, tamanyo, cmp);
+        nro_reg_archivo++;
     }
 
     fclose(pfArchivo);
 
-    return 1;
+    return OK;
 }
 
 void indice_mostrar(const t_indice *indice, size_t tam,void (*mostrar)(const void *))

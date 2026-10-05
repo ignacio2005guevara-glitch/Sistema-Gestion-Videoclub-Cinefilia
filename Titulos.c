@@ -45,13 +45,6 @@ void cargar_titulos(const char *path, void *vec_titulos, t_indice *indice, void 
             continue;
         }
 
-        // Validar Titulo
-//        if(!validar_nombre(registro.titulo))
-//        {
-//            //registrar_error(auditoria, "TITULO", &registro.id_pelicula);
-//            continue;
-//        }
-
         // Validar Genero
         if(!validar_plan_genero(registro.genero, Generos, CANT_PLANES_GENEROS))
         {
@@ -80,18 +73,9 @@ void cargar_titulos(const char *path, void *vec_titulos, t_indice *indice, void 
 
         // Revisar si la clave no existe en el indice
         reg_indice.id      = registro.id_pelicula;
-        //reg_indice.nro_reg = 0;   /* nro_reg no importa para la busqueda */
 
         if(indice_buscar(indice, &reg_indice, indice->cantidad_elementos_actual, sizeof(t_reg_indice_titulo), cmp_id_pelicula) == NO_EXISTE)
         {
-            // Nueva clave -> escribir en archivo e insertar en indice
-//            archivo_bin_agregar(pf_titulos_bin, &registro,
-//                                sizeof(t_titulo), &nro_reg);
-//            reg_indice.nro_reg = nro_reg;
-//            indice_insertar(indice, &reg_indice,
-//                            sizeof(t_reg_indice_titulo), cmp_id);
-
-            // Nueva clave -> escribir en archivo e insertar en indice
             vector_agregar(vec_titulos, &registro, sizeof(t_titulo));
             reg_indice.nro_reg = nro_reg;
             indice_insertar(indice, &reg_indice, sizeof(t_reg_indice_titulo), cmp_id_pelicula);
@@ -100,7 +84,6 @@ void cargar_titulos(const char *path, void *vec_titulos, t_indice *indice, void 
         else
         {
             // ID duplicado
-            //registrar_error(auditoria, "ID DUPLICADO", &registro.id_pelicula);
             continue;
         }
     }
@@ -112,54 +95,43 @@ int  alta_titulo(t_indice *indice, t_vector *vec)
 {
     t_titulo nuevo_titulo;
     t_reg_indice_titulo reg_indice;
-    char buffer[MAX_CARACTERES_TITULO_CSV];
     const char *Generos[] = {"Accion", "Drama", "Comedia", "Terror"};
 
-    /* ── Pedir todos los datos ── */
     printf("Ingrese Titulo: ");
     fflush(stdin);
     fgets(nuevo_titulo.titulo, MAX_TITULO, stdin);
     nuevo_titulo.titulo[strcspn(nuevo_titulo.titulo, "\n")] = '\0';
-
+    normalizar(nuevo_titulo.titulo,nuevo_titulo.titulo,0);
 
     printf("Ingrese Genero (Accion ,Drama, Comedia, Terror): ");
+    fflush(stdin);
     fgets(nuevo_titulo.genero, MAX_GENERO, stdin);
     nuevo_titulo.genero[strcspn(nuevo_titulo.genero, "\n")] = '\0';
-    fflush(stdin);
+    normalizar(nuevo_titulo.genero,nuevo_titulo.genero,0);
+
 
     printf("Ingrese Stock: ");
-    fgets(buffer, sizeof(buffer), stdin);
-    sscanf(buffer, "%d", &nuevo_titulo.stock);
-    fflush(stdin);
+    scanf("%d",&nuevo_titulo.stock);
 
-    /* ── Validaciones ── */
-
-    // Validar Titulo existente
-//    if(!validar_nombre(nuevo_titulo.titulo, vec))
-//    {
-//        printf("ERROR: Titulo repetido.\n");
-//        return ERROR;
-//    }
 
     // Validar titulo duplicado
     if(vector_buscar(vec, &nuevo_titulo, sizeof(t_titulo), cmp_titulo) != NO_EXISTE)
     {
-        printf("ERROR: Ya existe una pelicula con ese titulo.\n");
+        printf("ERROR: YA EXISTE UNA PELICULA CON ESE TITULO.\n");
         return ERROR;
     }
 
     // Validar Genero
     if(!validar_plan_genero(nuevo_titulo.genero, Generos, CANT_PLANES_GENEROS))
     {
-        printf("ERROR: Genero inválido.\n");
+        printf("ERROR: GENERO INVALIDO\n");
         return ERROR;
     }
-    //strcpy(nuevo_titulo.genero, Generos[opcion - 1]);
 
     // Validar Stock
     if(!validar_stock(nuevo_titulo.stock, 1, 0))
     {
-        printf("ERROR: Stock invalido. Debe ser >= 0.\n");
+        printf("ERROR: STOCK INVALIDO. DEBE SER >= 0.\n");
         return ERROR;
     }
 
@@ -179,18 +151,7 @@ int  alta_titulo(t_indice *indice, t_vector *vec)
     vector_agregar(vec, &nuevo_titulo, sizeof(t_titulo));
     indice_insertar(indice, &reg_indice, sizeof(t_reg_indice_titulo), cmp_id_pelicula);
 
-    ///PRUEBA mostrar vector
-    printf("\n================================================================================================================================================================\n");
-    printf("%-9s | %-60s | %-20s | %-5s | %s\n",
-           "ID", "TITULO", "GENERO", "STOCK", "ESTADO");
-    printf("===================================================================================================================================================================\n");
-    vector_mostrar(vec, sizeof(t_titulo), mostrar_titulo);
-    //archivo_bin_mostrar(pf_miembros, sizeof(t_miembro), mostrar_miembro);
-
-    /// PRUEBA mostrar indice
-    printf("\nIndice Titulos:\n");
-    indice_mostrar(indice, sizeof(t_reg_indice_titulo), mostrar_reg_indice_titulo);
-
+    printf("\nTITULO DADO DE ALTA CORRECTAMENTE CON ID %d\n",nuevo_titulo.id_pelicula);
     return OK;
 }
 
@@ -222,6 +183,7 @@ int  baja_titulo(t_indice *indice, t_vector *vec)
         printf("DESEA BORRAR EL TITULO %s (Y/N):",titulo.titulo);
         fflush(stdin);
         scanf("%c",&validacion);
+        validacion = MI_TOUPPER(validacion);
         if(validacion == 'y' || validacion == 'Y')
         {
             titulo.estado = 'B';
@@ -230,20 +192,9 @@ int  baja_titulo(t_indice *indice, t_vector *vec)
             printf("\nBAJA CONFIRMADA\n");
         }
         else
-                        printf("\nBAJA CANCELADA\n");
+            printf("\nBAJA CANCELADA\n");
     }
-
-    /// PRUEBA mostar vec titulos
-    printf("\n================================================================================================================================================================\n");
-    printf("%-9s | %-60s | %-20s | %-5s | %s\n",
-           "ID", "TITULO", "GENERO", "STOCK", "ESTADO");
-    printf("===================================================================================================================================================================\n");
-    vector_mostrar(vec, sizeof(t_titulo), mostrar_titulo);
-
-    /// PRUEBA mostrar indice titulos
-    printf("\nIndice Titulos:\n");
-    indice_mostrar(indice, sizeof(t_reg_indice_titulo), mostrar_reg_indice_titulo);
-    return 1;
+    return OK;
 }
 
 int  modificar_titulo(t_indice *indice,t_vector *vec)
@@ -257,14 +208,13 @@ int  modificar_titulo(t_indice *indice,t_vector *vec)
     scanf("%d", &id_buscar);
 
     reg_busqueda.dni = (long)id_buscar;
-    posicion_indice = indice_buscar(indice, &reg_busqueda, indice->cantidad_elementos_actual, sizeof(t_reg_indice), cmp_titulo);
+    posicion_indice = indice_buscar(indice, &reg_busqueda, indice->cantidad_elementos_actual, sizeof(t_reg_indice), cmp_id_pelicula);
 
     if (posicion_indice == NO_EXISTE) {
         printf("Error: El ID ingresado no pertenece a una pelicula activa.\n");
         return ERROR;
     }
 
-    // 2. Acceder de forma correcta a la memoria usando el vdatos de tu t_vector
     t_reg_indice *vectorIndice = (t_reg_indice*)indice->vindice;
     unsigned pos_vector_titulos = vectorIndice[posicion_indice].nro_reg;
 
@@ -280,7 +230,7 @@ int  modificar_titulo(t_indice *indice,t_vector *vec)
     printf("2. Titulo de la Pelicula\n");
     printf("3. Genero\n");
     printf("4. Stock\n");
-    printf("Elija el número del campo que desea modificar: ");
+    printf("Elija el numero del campo que desea modificar: ");
     scanf("%d", &opcion);
 
     switch(opcion) {
@@ -302,7 +252,7 @@ int  modificar_titulo(t_indice *indice,t_vector *vec)
             }
 
             pelicula->id_pelicula = id_nuevo;
-            cambio_id = 1; // bandera de cambio
+            cambio_id = 1; // flag de cambio
             break;
         }
 
@@ -369,26 +319,55 @@ int  modificar_titulo(t_indice *indice,t_vector *vec)
         indice_insertar(indice, &reg_nuevo, sizeof(t_reg_indice), cmp_titulo);
     }
 
-    printf("¡Titulo de pelicula modificado con exito en memoria!\n");
-
-        /// PRUEBA mostar vec titulos
-    printf("\n================================================================================================================================================================\n");
-    printf("%-9s | %-60s | %-20s | %-5s | %s\n",
-           "ID", "TITULO", "GENERO", "STOCK", "ESTADO");
-    printf("===================================================================================================================================================================\n");
-    vector_mostrar(vec, sizeof(t_titulo), mostrar_titulo);
-
-    /// PRUEBA mostrar indice titulos
-    printf("\nIndice Titulos:\n");
-    indice_mostrar(indice, sizeof(t_reg_indice_titulo), mostrar_reg_indice_titulo);
-
-
+    printf("Titulo de pelicula modificado con exito en memoria\n");
     return OK;
 }
 
-void persistir_titulos(const t_indice *indice, t_fecha fechaProceso)
+void persistir_titulos(const t_vector *vec, t_fecha fecha_proceso)
 {
+    char path[100];
+    sprintf(path, "Archivos\\titulos_%04d%02d%02d.dat", fecha_proceso.anio, fecha_proceso.mes, fecha_proceso.dia);
 
+    FILE *pf = fopen(path, "wb");
+    if (!pf)
+    {
+        printf("Error al crear archivo de persistencia de titulos: %s\n", path);
+        return;
+    }
+
+    fwrite(vec->vdatos, sizeof(t_titulo), vec->cantidad_actual, pf);
+    fclose(pf);
+    printf("Titulos persistidos en: %s\n", path);
+}
+
+int cargar_titulos_bin(const char *path, t_vector *vec_titulos, t_indice *indice)
+{
+    FILE *pf = fopen(path, "rb");
+    if (!pf)
+    {
+        return ERROR;
+    }
+
+    t_titulo t;
+    t_reg_indice_titulo reg_indice;
+    unsigned nro_reg = 0;
+
+    while (fread(&t, sizeof(t_titulo), 1, pf) == 1)
+    {
+        vector_agregar(vec_titulos, &t, sizeof(t_titulo));
+
+        reg_indice.id = t.id_pelicula;
+        reg_indice.nro_reg = nro_reg;
+
+        if (t.estado == 'A')
+        {
+            indice_insertar(indice, &reg_indice, sizeof(t_reg_indice_titulo), cmp_id_pelicula);
+        }
+        nro_reg++;
+    }
+
+    fclose(pf);
+    return OK;
 }
 
 int cmp_id_pelicula(const void *valor1, const void *valor2)
@@ -399,9 +378,9 @@ int cmp_id_pelicula(const void *valor1, const void *valor2)
     if(v1->id < v2->id)
         return -1;
     else if(v1->id > v2->id)
-        return 1;
+        return OK;
     else
-        return 0;
+        return ERROR;
 }
 
 void mostrar_titulo(const void *elem)
@@ -433,7 +412,6 @@ void mostrar_encabezado_titulos(void)
 void mostrar_titulo_por_id(const t_indice *indice, const t_vector *vec)
 {
     t_reg_indice_titulo clave;
-    //t_reg_indice_miembro reg;
     t_titulo titulo;
     int pos, id;
 
@@ -467,14 +445,180 @@ int generar_id_titulo(const t_indice *indice)
 
     if(indice_vacio(indice) == OK)
     {
-        return 1;   /* primer titulo */
+        return ERROR;
     }
 
-    /* el ultimo elemento del indice tiene el mayor id */
+
     indice_obtener(indice, indice->cantidad_elementos_actual - 1, &ultimo, sizeof(t_reg_indice_titulo));
 
     return ultimo.id + 1;
 }
+
+
+///1.Listar todos los títulos con stock 0, ordenados por título alfabéticamente
+
+void listar_titulos_stock_cero(const t_vector *vec_titulos)
+{
+    int i,encontrados=0;
+    t_titulo *veccopia = malloc(vec_titulos->cantidad_actual * sizeof(t_titulo));
+    memcpy(veccopia,vec_titulos->vdatos,vec_titulos->cantidad_actual * sizeof(t_titulo));
+
+    qsort(veccopia, vec_titulos->cantidad_actual, sizeof(t_titulo), cmp_titulo);
+
+    printf("\nTitulos con Stock CERO:");
+    for(i=0;i<vec_titulos->cantidad_actual;i++)
+    {
+        if(veccopia[i].stock == 0)
+        {
+            printf("\n%s",veccopia[i].titulo);
+            encontrados ++;
+        }
+    }
+    if(encontrados==0)
+    {
+        printf("\nNINGUN titulo cuenta con stock CERO");
+    }
+    free(veccopia);
+}
+///----------------------------------------------------------------------------
+
+///4.Dado un género ingresado por teclado, listar los títulos de ese género ordenados por título
+
+void listar_titulos_del_genero_ingresado_ordenadoxtitulo(const t_vector *vec_titulos)
+{
+    int i,encontrados=0;
+    char genero[MAX_GENERO];
+    const char *Generos[]={"Accion","Drama","Comedia","Terror"};
+
+    t_titulo *veccopia = malloc(vec_titulos->cantidad_actual * sizeof(t_titulo));
+    memcpy(veccopia,vec_titulos->vdatos,vec_titulos->cantidad_actual * sizeof(t_titulo));
+
+    qsort(veccopia,vec_titulos->cantidad_actual,sizeof(t_titulo),cmp_titulo);
+
+
+    while(getchar() != '\n'); //fflush(stdin);
+    do{
+        printf("\nIngrese el GENERO: Accion-Drama-Comedia-Terror\n");
+        fflush(stdin);
+        fgets(genero, MAX_GENERO, stdin);
+        genero[strcspn(genero, "\n")] = '\0';
+        normalizar(genero,genero,0);
+        if(!validar_plan_genero(genero,Generos,CANT_PLANES_GENEROS))
+        {
+            printf("\nGENERO INCORRECTO, VOLVER A INGRESAR...");
+        }
+    }while(!validar_plan_genero(genero,Generos,CANT_PLANES_GENEROS));
+
+
+    printf("\nTITULOS con genero:%s",genero);
+    for(i=0;i<vec_titulos->cantidad_actual;i++)
+    {
+        if(strcmp(veccopia[i].genero,genero) == 0)
+        {
+            encontrados++;
+            printf("\n%s\t%s", veccopia[i].titulo, veccopia[i].genero);
+            printf("\n");
+        }
+    }
+
+    if(encontrados==0)
+    {
+        printf("\nNinguno...");
+    }
+
+    free(veccopia);
+}
+
+///----------------------------------------------------------------------------------------------
+
+///6.Listar títulos ordenados por stock descendente
+
+void listar_titulos_ordenados_por_stock_descendente(const t_vector *vec_titulos)
+{
+    int i;
+    t_titulo *veccopia = malloc(vec_titulos->cantidad_actual * sizeof(t_titulo));
+    memcpy(veccopia,vec_titulos->vdatos,vec_titulos->cantidad_actual * sizeof(t_titulo));
+
+    qsort(veccopia,vec_titulos->cantidad_actual,sizeof(t_titulo),cmp_stock_descendente);
+    printf("\nTitulos ordenados por stock descendente:");
+    for(i=0;i<vec_titulos->cantidad_actual;i++)
+    {
+        printf("\n%d,%s,%s,STOCK:%d,%c",veccopia[i].id_pelicula,veccopia[i].titulo,veccopia[i].genero,veccopia[i].stock,veccopia[i].estado);
+    }
+
+    free(veccopia);
+}
+
+
+
+int cmp_stock_descendente(const void *a,const void *b)
+{
+    const t_titulo *ta = (const t_titulo*)a;
+    const t_titulo *tb = (const t_titulo*)b;
+    if(ta->stock > tb->stock)
+    {
+        return -1;
+    }
+    else if(ta->stock < tb->stock)
+    {
+        return 1;
+    }
+    else //stock_a == stock_b
+    {
+        return 0;
+    }
+}
+
+///----------------------------------------------------------------------------------------------
+
+///8.Listar los títulos que nunca fueron alquilados
+
+void listar_titulos_nunca_alquilados(const t_vector *vec_titulos,const t_vector *vec_alquileres)
+{
+    int i,pos,no_encontrados=0;
+    t_titulo *titulo = (t_titulo*)vec_titulos->vdatos;
+    t_alquiler *alquiler =(t_alquiler*)vec_alquileres->vdatos;
+
+    printf("\nLISTADO DE TITULOS QUE NUNCA FUERON ALQUILADOS:");
+    printf("\nID de pelicula,NOMBRE de pelicula");
+
+    for(i=0;i<vec_titulos->cantidad_actual;i++)
+    {
+        pos = buscar_titulo_en_alquileres(vec_alquileres->cantidad_actual,titulo[i].id_pelicula,alquiler);
+        if(pos == -1)
+        {
+            no_encontrados++;
+            printf("\n%d,%s",titulo[i].id_pelicula,titulo[i].titulo);
+        }
+    }
+
+    if(no_encontrados == 0)
+    {
+        printf("\nTodos los titulos tienen al menos 1 alquiler...");
+    }
+}
+
+int buscar_titulo_en_alquileres(int ce,int id_pelicula,t_alquiler *alquiler)
+{
+    int i=0,pos = -1;
+
+    while(i<ce && pos == -1)
+    {
+        if(alquiler[i].id_pelicula == id_pelicula)
+        {
+            pos = i;
+        }
+        else
+        {
+            i++;
+        }
+    }
+
+    return pos;
+}
+
+
+///----------------------------------------------------------------------------------------------
 
 int cmp_titulo(const void *valor1, const void *valor2)
 {
@@ -483,4 +627,5 @@ int cmp_titulo(const void *valor1, const void *valor2)
 
     return strcmp(v1->titulo, v2->titulo);
 }
+
 

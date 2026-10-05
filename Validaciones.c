@@ -1,7 +1,5 @@
 #include "Validaciones.h"
-#define MI_TOUPPER(c) (((c) >= 'a' && (c) <= 'z') ? ((c) - 32) : (c))
-#define MI_TOLOWER(c) (((c) >= 'A' && (c) <= 'Z') ? ((c) + 32) : (c))
-#define ES_LETRA(c)   (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z') ? 1 : 0)
+
 
 
 int cmp_dni(const void *a, const void *b)
@@ -11,7 +9,7 @@ int cmp_dni(const void *a, const void *b)
 
     if (dni_a < dni_b) return -1;
     if (dni_a > dni_b) return  1;
-    return 0;
+    return OK;
 }
 
 int cmp_fecha(const void *a, const void *b)
@@ -22,7 +20,7 @@ int cmp_fecha(const void *a, const void *b)
     if (fa->anio != fb->anio) return (fa->anio < fb->anio) ? -1 : 1;
     if (fa->mes  != fb->mes ) return (fa->mes  < fb->mes ) ? -1 : 1;
     if (fa->dia  != fb->dia ) return (fa->dia  < fb->dia ) ? -1 : 1;
-    return 0;
+    return ERROR;
 }
 
 void normalizar(const char *nombre_original, char *nombre_normalizado, int con_coma)
@@ -31,10 +29,9 @@ void normalizar(const char *nombre_original, char *nombre_normalizado, int con_c
     char* esc = nombre_normalizado;
     int palabrasEscritas = 0;
 
-
     while(*lec) // Mientras haya cadena para leer
     {
-        while(*lec && !ES_LETRA(*lec)) // Busco la primera/proxima palabra, ignoro espacios y ','
+        while(*lec && !ES_LETRA(*lec) && !(con_coma == 0 && ES_DIGITO(*lec))) // Busco la primera/proxima palabra, ignoro espacios y ','
         {
             lec++;
         }
@@ -59,7 +56,7 @@ void normalizar(const char *nombre_original, char *nombre_normalizado, int con_c
             *esc = MI_TOUPPER(*lec); // Primer letra Mayuscula
             lec++;
             esc++;
-            while(*lec && ES_LETRA(*lec)) // Resto de letras Minsucula
+            while(*lec && (ES_LETRA(*lec) || (con_coma == 0 && ES_DIGITO(*lec)))) // Resto de letras Minsucula
             {
                 *esc = MI_TOLOWER(*lec);
                 lec++;
@@ -81,14 +78,14 @@ int validar_email(const char* email) //Retorna 1 si es valido o 0 si no lo es.
 
     if(*p_email == '\0')
     {
-        return 0; //esta vacio
+        return ERROR; //esta vacio
     }
 
     while(*(p_email) != '\0')
     {
         if(*(p_email) == ' ')
         {
-            return 0; //se encontro espacio
+            return ERROR; //se encontro espacio
         }
         else
         {
@@ -104,7 +101,7 @@ int validar_email(const char* email) //Retorna 1 si es valido o 0 si no lo es.
 
     if(contArrobas != 1 || p_arroba == email || *(p_arroba+1) == '\0') //Verifico que haya exactamente 1 @,y que @ no sea ni el primer ni ultimo caracter.
     {
-        return 0;
+        return ERROR;
     }
 
     p_dominio = p_arroba+2; //Dominio : El proveedor del servicio
@@ -119,15 +116,15 @@ int validar_email(const char* email) //Retorna 1 si es valido o 0 si no lo es.
 
     if(hayPunto == 0 || hayPunto > 2) //porq si es 0 no hay punto, pero si hay 2 o mas quiere decir que es por ejemplo juan.cruz@gmail...com y no es correcto.Ademas verifico el [opcional] como .ar
     {
-         return 0;
+         return ERROR;
     }
 
     if(strlen(email) > 30)
     {
-        return 0; //es mayor a 30 y no se puede
+        return ERROR; //es mayor a 30 y no se puede
     }
 
-    return 1; //si pasa todas las validaciones el email es VALIDO
+    return OK; //si pasa todas las validaciones el email es VALIDO
 }
 
 bool fecha_anio_bisiesto(t_fecha fecha)
@@ -159,32 +156,6 @@ int es_fecha_valida(t_fecha fecha)
             return ERROR;
     }
     return OK;
-}
-
-t_fecha parsear_fechas(const char* cadena)
-{
-    int dia, mes,anio, leidos;
-    t_fecha fecha={0};
-
-    if(cadena == NULL)
-        return fecha;
-
-    if(strlen(cadena) != 10)
-        return fecha;
-
-    if(*(cadena+2)!='/'||*(cadena+5)!='/')
-        return fecha;
-
-    leidos = scanf(cadena,"%d/%d/%d",&dia,&mes,&anio);
-
-    if(leidos!=3)
-        return fecha;
-
-    fecha.dia=dia;
-    fecha.mes=mes;
-    fecha.anio=anio;
-
-    return fecha;
 }
 
 int validar_DNI(long *dni)
@@ -262,7 +233,21 @@ int calcular_CUIL(long* dni, char* sexo, char* cuil_destino)
 
     sprintf(cuil_destino, "%02d-%08ld-%d", sex_aux, *dni, z);
 
-    return OK; // OK
+    return OK;
+}
+
+int validar_nombre(char *nombre)
+{
+    if (*nombre == '\0')
+        return ERROR;
+
+    while (*nombre != '\0') {
+        if (!ES_LETRA(*nombre) && *nombre != ' ' && *nombre != ',')
+            return ERROR;
+        nombre++;
+    }
+
+    return OK;
 }
 
 int validar_caracter(char dato,const char opciones[],int ce)
@@ -271,9 +256,9 @@ int validar_caracter(char dato,const char opciones[],int ce)
     for(i=0;i<ce;i++)
     {
         if(dato == opciones[i])
-            return OK; // OK = 1
+            return OK;
     }
-    return ERROR; // ERROR = 0
+    return ERROR;
 }
 
 int validar_plan_genero(const char *dato,const char *opciones[], int ce)
@@ -286,32 +271,17 @@ int validar_plan_genero(const char *dato,const char *opciones[], int ce)
     {
         normalizar(opciones[i], opcion_normalizado, 0);
         if(strcmp(dato_normalizado,opcion_normalizado)==0)
-            return OK; //valido
+            return OK;
     }
 
-    return ERROR; // invalido
+    return ERROR;
 }
 
 int validar_stock(int dato,int li,int excepcion)
 {
     if(dato<li && dato!=excepcion)
-        return ERROR; //invalido
-    return OK; //valido
-}
-
-int validar_ID_archivo(int id,const int *pv,int ce)
-{
-    int i;
-    if(ce==0)
-        return 0;
-    for(i = 0; i < ce; i++)
-    {
-        if(id == *(pv+i))
-            return 1;  // repetido
-    }
-    if(id == *(pv+ce-1) + 1)
-        return 0; //chequea que sea incremental
-    return 1;
+        return ERROR;
+    return OK;
 }
 
 t_fecha obtener_fecha_actual()
@@ -363,7 +333,7 @@ int validar_id(int *id, t_indice *indice)
     reg_buscar.nro_reg = 0;
 
     if(indice_buscar(indice, &reg_buscar, indice->cantidad_elementos_actual, sizeof(t_reg_indice_titulo), cmp_id_pelicula) != NO_EXISTE)
-        return ERROR;   /* ya existe → inválido */
+        return ERROR;   // ya existe
 
     return OK;
 }
@@ -376,20 +346,19 @@ t_fecha obtener_fecha_proceso(void)
     printf("Ingrese la fecha de proceso (DD/MM/AAAA) o Enter para usar la actual: ");
     fgets(input, sizeof(input), stdin);
 
-    /* Si solo presionó Enter, usar la fecha actual */
+    // Si solo presiona Enter, usar la fecha actual
     if(input[0] == '\n')
     {
         return obtener_fecha_actual();
     }
 
-    /* Intentar parsear la fecha ingresada */
+    // Parsear fecha
     if(sscanf(input, "%d/%d/%d", &fecha.dia, &fecha.mes, &fecha.anio) != 3)
     {
         printf("Formato invalido. Se usara la fecha actual.\n");
         return obtener_fecha_actual();
     }
 
-    /* Validar que sea una fecha real */
     if(!es_fecha_valida(fecha))
     {
         printf("Fecha invalida. Se usara la fecha actual.\n");
@@ -399,6 +368,24 @@ t_fecha obtener_fecha_proceso(void)
     return fecha;
 }
 
+void str_to_upper(char *cadena)
+{
+    char *p = cadena;
+    while(*p != '\0')
+    {
+        *p = MI_TOUPPER(*p);
+        p++;
+    }
+}
 
-
+int archivo_existe(const char* path, const char* modo)
+{
+    FILE *f = fopen(path, modo);
+    if (f)
+    {
+        fclose(f);
+        return OK;
+    }
+    return ERROR;
+}
 
